@@ -1,11 +1,11 @@
-import React, { useState, useEffect, ChangeEventHandler } from "react"
+import React, { useState, useEffect, ChangeEventHandler, useCallback } from "react"
 import styled from "styled-components"
 import Button from "@material-ui/core/ButtonBase"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { Spacing, BorderRadius, FontWeight } from "shared/styles/styles"
 import { Colors } from "shared/styles/colors"
 import { CenteredContainer } from "shared/components/centered-container/centered-container.component"
-import { Person } from "shared/models/person"
+import { Person, PersonHelper } from "shared/models/person"
 import { useApi } from "shared/hooks/use-api"
 import { StudentListTile } from "staff-app/components/student-list-tile/student-list-tile.component"
 import { ActiveRollOverlay, ActiveRollAction } from "staff-app/components/active-roll-overlay/active-roll-overlay.component"
@@ -16,12 +16,13 @@ export const HomeBoardPage: React.FC = () => {
   const [isRollMode, setIsRollMode] = useState(false)
   const [sortedOrder, setSortedOrder] = useState<SortedOrder>("asc")
   const [sortBy, setSortBy] = useState<SortBy>("first_name")
+  const [searchQuery, setSearchQuery] = useState<string>("")
 
   const [getStudents, data, loadState] = useApi<{ students: Person[] }>({ url: "get-homeboard-students" })
   const [students, setStudents] = useState<Person[]>([])
 
   useEffect(() => {
-    const sorted = [...(data?.students || [])].sort((student1, student2) => {
+    let filteredAnsSortedStudents = [...(data?.students || [])].sort((student1, student2) => {
       const value1 = student1[sortBy]
       const value2 = student2[sortBy]
 
@@ -34,9 +35,19 @@ export const HomeBoardPage: React.FC = () => {
       }
       return 0
     })
+    if (searchQuery?.trim()) {
+      filteredAnsSortedStudents = filteredAnsSortedStudents.filter((student) => {
+        return PersonHelper.getFullName(student).toLowerCase().includes(searchQuery?.toLowerCase())
+      })
+    }
 
-    setStudents(sorted)
-  }, [sortedOrder, data, sortBy])
+    setStudents(filteredAnsSortedStudents)
+  }, [sortedOrder, data, sortBy, searchQuery])
+
+  const onSearchQueryChange = useCallback((value: string) => {
+    console.log({ value })
+    setSearchQuery(value)
+  }, [])
 
   useEffect(() => {
     void getStudents()
@@ -60,7 +71,7 @@ export const HomeBoardPage: React.FC = () => {
   return (
     <>
       <S.PageContainer>
-        <Toolbar onItemClick={onToolbarAction} />
+        <Toolbar onItemClick={onToolbarAction} onSeachQueryChange={onSearchQueryChange} />
 
         {loadState === "loading" && (
           <CenteredContainer>
@@ -94,6 +105,7 @@ type ToolbarActionValue = {
 }
 interface ToolbarProps {
   onItemClick: (action: ToolbarAction, value?: ToolbarActionValue) => void
+  onSeachQueryChange: (value: string) => void
 }
 interface SortedIconType {
   sortedOrder?: SortedOrder
@@ -113,11 +125,18 @@ const SortIcon: React.FC<SortedIconType> = ({ sortedOrder, ...props }) => {
 }
 
 const Toolbar: React.FC<ToolbarProps> = (props) => {
-  const { onItemClick } = props
+  const { onItemClick, onSeachQueryChange } = props
+
+  const [search, setSearch] = useState<string>("")
   const [sortActionValues, setSortActionValues] = useState<ToolbarActionValue>({
     sortBy: "first_name",
     sortOrder: "asc",
   })
+
+  const onSearch: ChangeEventHandler<HTMLInputElement> = ({ target: { value } }) => {
+    setSearch(value)
+    onSeachQueryChange(value)
+  }
 
   const onSortOrderChange = () => {
     const newSortedOrder = sortActionValues.sortOrder == "asc" ? "desc" : "asc"
@@ -151,7 +170,9 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
       </div>
 
       <SortIcon sortedOrder={sortActionValues.sortOrder} onClick={onSortOrderChange} />
-      <div>Search</div>
+      <div>
+        <input type="text" name="search" value={search} placeholder="Type To Search" onChange={onSearch} />
+      </div>
       <S.Button onClick={() => onItemClick("roll")}>Start Roll</S.Button>
     </S.ToolbarContainer>
   )
