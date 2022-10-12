@@ -1,4 +1,4 @@
-import React, { useState, useEffect, ChangeEventHandler, useCallback, useMemo } from "react"
+import React, { useState, useEffect, ChangeEventHandler, useCallback, useMemo, Fragment } from "react"
 import styled from "styled-components"
 import Button from "@material-ui/core/ButtonBase"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -9,68 +9,14 @@ import { Person, PersonHelper } from "shared/models/person"
 import { useApi } from "shared/hooks/use-api"
 import { StudentListTile } from "staff-app/components/student-list-tile/student-list-tile.component"
 import { ActiveRollOverlay, ActiveRollAction } from "staff-app/components/active-roll-overlay/active-roll-overlay.component"
+import { DailyCareContextProvider, SortBy, SortedOrder, useDailyCareContext } from "staff-app/contexts/student-roll-context"
 
-type SortedOrder = "asc" | "desc" | null
-type SortBy = "first_name" | "last_name"
 export const HomeBoardPage: React.FC = () => {
-  const [isRollMode, setIsRollMode] = useState(false)
-  const [sortedOrder, setSortedOrder] = useState<SortedOrder>("asc")
-  const [sortBy, setSortBy] = useState<SortBy>("first_name")
-  const [searchQuery, setSearchQuery] = useState<string>("")
-  const [getStudents, data, loadState] = useApi<{ students: Person[] }>({ url: "get-homeboard-students" })
-
-  const sortedStudents = useMemo(() => {
-    const students = data?.students || []
-    return [...students].sort((student1, student2) => {
-      const value1 = student1[sortBy]
-      const value2 = student2[sortBy]
-
-      if (value1 < value2) {
-        return sortedOrder === "asc" ? -1 : 1
-      }
-      if (value1 > value2) {
-        return sortedOrder === "asc" ? 1 : -1
-      }
-      return 0
-    })
-  }, [data, sortBy, sortedOrder])
-
-  const filteredStudent = useMemo(() => {
-    return searchQuery?.trim()
-      ? sortedStudents.filter((student) => {
-          return PersonHelper.getFullName(student).toLowerCase().includes(searchQuery?.toLowerCase())
-        })
-      : sortedStudents
-  }, [searchQuery, sortedStudents])
-
-  const students: Person[] = filteredStudent
-
-  const onSearchQueryChange = useCallback((value: string) => {
-    console.log({ value })
-    setSearchQuery(value)
-  }, [])
-
-  useEffect(() => {
-    void getStudents()
-  }, [getStudents])
-
-  const onToolbarAction = (action: ToolbarAction, value?: ToolbarActionValue) => {
-    if (action === "roll") {
-      setIsRollMode(true)
-    } else if (action === "sort") {
-      setSortedOrder((sortedOrder) => value?.sortOrder || sortedOrder)
-      setSortBy((sortBy) => value?.sortBy || sortBy)
-    }
-  }
-
-  const onActiveRollAction = (action: ActiveRollAction) => {
-    if (action === "exit") {
-      setIsRollMode(false)
-    }
-  }
+  const { onToolbarAction, onSearchQueryChange, onActiveRollAction } = useDailyCareContext()
+  const { students, loadState, isRollMode } = useDailyCareContext()
 
   return (
-    <>
+    <Fragment>
       <S.PageContainer>
         <Toolbar onItemClick={onToolbarAction} onSeachQueryChange={onSearchQueryChange} />
 
@@ -95,12 +41,12 @@ export const HomeBoardPage: React.FC = () => {
         )}
       </S.PageContainer>
       <ActiveRollOverlay isActive={isRollMode} onItemClick={onActiveRollAction} />
-    </>
+    </Fragment>
   )
 }
 
-type ToolbarAction = "roll" | "sort"
-type ToolbarActionValue = {
+export type ToolbarAction = "roll" | "sort"
+export type ToolbarActionValue = {
   sortBy?: SortBy
   sortOrder?: SortedOrder
 }

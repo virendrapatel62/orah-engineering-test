@@ -5,12 +5,19 @@ import { Images } from "assets/images"
 import { Colors } from "shared/styles/colors"
 import { Person, PersonHelper } from "shared/models/person"
 import { RollStateSwitcher } from "staff-app/components/roll-state/roll-state-switcher.component"
+import { RolllStateType } from "shared/models/roll"
+import { useDailyCareContext } from "staff-app/contexts/student-roll-context"
 
 interface Props {
   isRollMode?: boolean
   student: Person
 }
 export const StudentListTile: React.FC<Props> = ({ isRollMode, student }) => {
+  const { onRollChange } = useDailyCareContext()
+  const onStateChange = (newState: RolllStateType) => {
+    onRollChange(student, newState)
+  }
+
   return (
     <S.Container>
       <S.Avatar url={Images.avatar}></S.Avatar>
@@ -19,7 +26,7 @@ export const StudentListTile: React.FC<Props> = ({ isRollMode, student }) => {
       </S.Content>
       {isRollMode && (
         <S.Roll>
-          <RollStateSwitcher />
+          <RollStateSwitcher onStateChange={onStateChange} />
         </S.Roll>
       )}
     </S.Container>
