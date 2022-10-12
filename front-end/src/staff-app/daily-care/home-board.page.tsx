@@ -1,4 +1,4 @@
-import React, { useState, useEffect, ChangeEventHandler, useCallback } from "react"
+import React, { useState, useEffect, ChangeEventHandler, useCallback, useMemo } from "react"
 import styled from "styled-components"
 import Button from "@material-ui/core/ButtonBase"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -17,16 +17,14 @@ export const HomeBoardPage: React.FC = () => {
   const [sortedOrder, setSortedOrder] = useState<SortedOrder>("asc")
   const [sortBy, setSortBy] = useState<SortBy>("first_name")
   const [searchQuery, setSearchQuery] = useState<string>("")
-
   const [getStudents, data, loadState] = useApi<{ students: Person[] }>({ url: "get-homeboard-students" })
-  const [students, setStudents] = useState<Person[]>([])
 
-  useEffect(() => {
-    let filteredAnsSortedStudents = [...(data?.students || [])].sort((student1, student2) => {
+  const sortedStudents = useMemo(() => {
+    const students = data?.students || []
+    return [...students].sort((student1, student2) => {
       const value1 = student1[sortBy]
       const value2 = student2[sortBy]
 
-      console.log(value1, value2, sortBy, sortedOrder)
       if (value1 < value2) {
         return sortedOrder === "asc" ? -1 : 1
       }
@@ -35,14 +33,17 @@ export const HomeBoardPage: React.FC = () => {
       }
       return 0
     })
-    if (searchQuery?.trim()) {
-      filteredAnsSortedStudents = filteredAnsSortedStudents.filter((student) => {
-        return PersonHelper.getFullName(student).toLowerCase().includes(searchQuery?.toLowerCase())
-      })
-    }
+  }, [data, sortBy, sortedOrder])
 
-    setStudents(filteredAnsSortedStudents)
-  }, [sortedOrder, data, sortBy, searchQuery])
+  const filteredStudent = useMemo(() => {
+    return searchQuery?.trim()
+      ? sortedStudents.filter((student) => {
+          return PersonHelper.getFullName(student).toLowerCase().includes(searchQuery?.toLowerCase())
+        })
+      : sortedStudents
+  }, [searchQuery, sortedStudents])
+
+  const students: Person[] = filteredStudent
 
   const onSearchQueryChange = useCallback((value: string) => {
     console.log({ value })
