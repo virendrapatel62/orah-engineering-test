@@ -3,7 +3,7 @@ import styled from "styled-components"
 import Button from "@material-ui/core/Button"
 import { BorderRadius, Spacing } from "shared/styles/styles"
 import { RollStateList, StateList } from "staff-app/components/roll-state/roll-state-list.component"
-import { useDailyCareContext } from "staff-app/contexts/student-roll-context"
+import { useDailyCareContext } from "staff-app/contexts/daily-care-context"
 import { RolllStateType } from "shared/models/roll"
 
 export type ActiveRollAction = "filter" | "exit"
@@ -14,22 +14,22 @@ interface Props {
 
 export const ActiveRollOverlay: React.FC<Props> = (props) => {
   const { isActive, onItemClick } = props
-  const { students, rollStateCount } = useDailyCareContext()
+  const { students, rollStatus, onFilterByState } = useDailyCareContext()
 
   const [stateList, setStateList] = useState<StateList[]>([])
 
   useEffect(() => {
-    const list: StateList[] = [{ type: "all", count: students?.length }]
-    const states: RolllStateType[] = ["absent", "late", "present"]
+    const list: StateList[] = []
+    const states: RolllStateType[] = ["all", "absent", "late", "present"]
     states.forEach((state) => {
       list.push({ type: state, count: getCount(state) })
     })
 
     setStateList(list)
-  }, [students, rollStateCount])
+  }, [students, rollStatus])
 
   const getCount = (state: RolllStateType) => {
-    return rollStateCount.get(state) || 0
+    return rollStatus.count[state] || 0
   }
 
   return (
@@ -37,7 +37,7 @@ export const ActiveRollOverlay: React.FC<Props> = (props) => {
       <S.Content>
         <div>Class Attendance</div>
         <div>
-          <RollStateList stateList={stateList} />
+          <RollStateList stateList={stateList} onItemClick={onFilterByState} />
           <div style={{ marginTop: Spacing.u6 }}>
             <Button color="inherit" onClick={() => onItemClick("exit")}>
               Exit
