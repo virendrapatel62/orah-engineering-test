@@ -14,8 +14,7 @@ interface Props {
 
 export const ActiveRollOverlay: React.FC<Props> = (props) => {
   const { isActive, onItemClick } = props
-  const { students, rollStatus, onFilterByState } = useDailyCareContext()
-
+  const { students, rollStatus, onFilterByState, onCompleteRoll } = useDailyCareContext()
   const [stateList, setStateList] = useState<StateList[]>([])
 
   useEffect(() => {
@@ -42,7 +41,7 @@ export const ActiveRollOverlay: React.FC<Props> = (props) => {
             <Button color="inherit" onClick={() => onItemClick("exit")}>
               Exit
             </Button>
-            <Button color="inherit" style={{ marginLeft: Spacing.u2 }} onClick={() => onItemClick("exit")}>
+            <Button color="inherit" style={{ marginLeft: Spacing.u2 }} onClick={onCompleteRoll}>
               Complete
             </Button>
           </div>

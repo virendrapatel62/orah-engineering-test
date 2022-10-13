@@ -6,16 +6,17 @@ import { Colors } from "shared/styles/colors"
 import { Person, PersonHelper } from "shared/models/person"
 import { RollStateSwitcher } from "staff-app/components/roll-state/roll-state-switcher.component"
 import { RolllStateType } from "shared/models/roll"
-import { useDailyCareContext } from "staff-app/contexts/daily-care-context"
 
 interface Props {
   isRollMode?: boolean
   student: Person
+  initialRollState?: RolllStateType
+  readOnlyRollInput?: boolean
+  onRollChange?: (student: Person, newState: RolllStateType) => void
 }
-export const StudentListTile: React.FC<Props> = React.memo(({ isRollMode, student }) => {
-  const { onRollChange } = useDailyCareContext()
+export const StudentListTile: React.FC<Props> = React.memo(({ isRollMode, student, initialRollState, onRollChange, readOnlyRollInput = false }) => {
   const onStateChange = (newState: RolllStateType) => {
-    onRollChange(student, newState)
+    onRollChange && onRollChange(student, newState)
   }
 
   return (
@@ -26,7 +27,7 @@ export const StudentListTile: React.FC<Props> = React.memo(({ isRollMode, studen
       </S.Content>
       {isRollMode && (
         <S.Roll>
-          <RollStateSwitcher onStateChange={onStateChange} initialState={student.rollState} />
+          <RollStateSwitcher onStateChange={onStateChange} initialState={initialRollState} readOnlyRollInput={readOnlyRollInput} />
         </S.Roll>
       )}
     </S.Container>

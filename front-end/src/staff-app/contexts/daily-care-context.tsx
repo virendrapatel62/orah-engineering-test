@@ -24,21 +24,20 @@ const defaultContextValue: DailyCareContextValueType = {
     count: {},
   },
   onFilterByState: () => {},
+  onCompleteRoll: () => {},
 }
 
 export const DailyCareContext: React.Context<DailyCareContextValueType> = React.createContext(defaultContextValue)
 
 export const DailyCareContextProvider: React.FC = ({ children }) => {
   const [getStudents, data, loadState] = useApi<{ students: Person[] }>({ url: "get-homeboard-students" })
+  const [saveRoll, saveRollData, saveRollLoadState] = useApi<{ success: boolean }>({
+    url: "save-roll",
+  })
   const [isRollMode, setIsRollMode] = useState(false)
   const [state, dispatch] = useReducer(dailyCareReducer, defaultReducerValue)
   const { rollInfo, students: studentsData } = state
   const { data: students, searchQuery, sortBy, sortOrder } = studentsData
-
-  console.log({
-    data,
-    loadState,
-  })
 
   useEffect(() => {
     void getStudents()
@@ -102,6 +101,22 @@ export const DailyCareContextProvider: React.FC = ({ children }) => {
     )
   }
 
+  useEffect(() => {
+    setIsRollMode(!!!saveRollData?.success)
+  }, [saveRollData])
+
+  const onCompleteRoll = () => {
+    const rollInput: RollInput = {
+      student_roll_states: students.map((student) => {
+        return {
+          roll_state: student.rollState || "unmark",
+          student_id: student.id,
+        }
+      }),
+    }
+    saveRoll(rollInput)
+  }
+
   const value: DailyCareContextValueType = {
     students: students || [],
     isRollMode,
@@ -115,6 +130,7 @@ export const DailyCareContextProvider: React.FC = ({ children }) => {
     onRollChange,
     rollStatus: rollInfo,
     onFilterByState: setFilter,
+    onCompleteRoll,
   }
 
   return <DailyCareContext.Provider value={value}>{children}</DailyCareContext.Provider>

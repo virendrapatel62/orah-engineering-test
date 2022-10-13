@@ -35,6 +35,7 @@ export type DailyCareContextValueType = {
   onRollChange: (student: Person, rollState: RolllStateType) => void
   rollStatus: RollInfo
   onFilterByState: (type: RolllStateType | "all") => void
+  onCompleteRoll: () => void
 }
 
 export type RollInfo = {

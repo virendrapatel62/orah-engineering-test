@@ -12,7 +12,7 @@ import styled from "styled-components"
 
 export const HomeBoardPage: React.FC = () => {
   const { onToolbarAction, onSearchQueryChange, onActiveRollAction } = useDailyCareContext()
-  const { students, loadState, isRollMode } = useDailyCareContext()
+  const { students, loadState, isRollMode, onRollChange } = useDailyCareContext()
 
   return (
     <Fragment>
@@ -28,7 +28,7 @@ export const HomeBoardPage: React.FC = () => {
         {loadState === "loaded" && students && (
           <>
             {students.map((s) => (
-              <StudentListTile key={s.id} isRollMode={isRollMode} student={s} />
+              <StudentListTile key={s.id} isRollMode={isRollMode} student={s} onRollChange={onRollChange} />
             ))}
           </>
         )}
