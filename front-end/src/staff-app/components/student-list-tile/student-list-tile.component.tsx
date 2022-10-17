@@ -27,7 +27,7 @@ export const StudentListTile: React.FC<Props> = React.memo(({ isRollMode, studen
       </S.Content>
       {isRollMode && (
         <S.Roll>
-          <RollStateSwitcher onStateChange={onStateChange} initialState={initialRollState} readOnlyRollInput={readOnlyRollInput} />
+          <RollStateSwitcher onStateChange={onStateChange} initialState={student.rollState || initialRollState} readOnlyRollInput={readOnlyRollInput} />
         </S.Roll>
       )}
     </S.Container>

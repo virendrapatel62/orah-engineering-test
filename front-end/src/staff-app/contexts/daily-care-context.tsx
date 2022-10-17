@@ -102,6 +102,7 @@ export const DailyCareContextProvider: React.FC = ({ children }) => {
   }
 
   useEffect(() => {
+    if(saveRollData)
     setIsRollMode(!!!saveRollData?.success)
   }, [saveRollData])
 
@@ -116,6 +117,7 @@ export const DailyCareContextProvider: React.FC = ({ children }) => {
     }
     saveRoll(rollInput)
   }
+
 
   const value: DailyCareContextValueType = {
     students: students || [],
@@ -132,6 +134,7 @@ export const DailyCareContextProvider: React.FC = ({ children }) => {
     onFilterByState: setFilter,
     onCompleteRoll,
   }
+
 
   return <DailyCareContext.Provider value={value}>{children}</DailyCareContext.Provider>
 }
